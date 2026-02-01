@@ -69,20 +69,13 @@ fi
 hash="$(git log -n 1 --format='%h' "$current_branch")"
 message="Site updated to commit $hash from the $current_branch branch"
 
-rsync -avz --progress --delete --exclude=".git" "$root/" "$out"
+rsync -rtvz --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --progress --delete --exclude=".git" "$root/" "$out"
 #
-# --archive, -a     = archive mode is -rlptgoD (no -A,-X,-U,-N,-H)
-#
-#   --recursive, -r = recurse into directories
-#   --links, -l     = copy symlinks as symlinks
-#   --perms, -p     = preserve permissions
-#   --times, -t     = preserve modification times
-#   --group, -g     = preserve group
-#   --owner, -o     = preserve owner (super-user only)
-#   -D              = same as --devices --specials
-#
+# --recursive, -r   = recurse into directories
+# --times, -t       = preserve modification times
 # --verbose, -v     = increase verbosity
 # --compress, -z    = compress file data during the transfer
+# --chmod           = set permissions of directories and files
 # --progress        = show progress during transfer
 # --delete          = delete extraneous files from dest dirs
 # --exclude=PATTERN = exclude files matching PATTERN
