@@ -5,14 +5,13 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-
 jobs:
   check:
     uses: ./.github/workflows/check.yml
 
   deploy:
+    permissions:
+      contents: write
     needs: [check]
     runs-on: ubuntu-latest
     steps:
