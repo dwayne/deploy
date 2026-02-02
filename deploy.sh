@@ -1,15 +1,17 @@
 #
-# Usage: deploy [-s] root branch_name
+# Usage: deploy [-ns] root branch_name
 #
 
 
 # OPTIONS
 
 
+ignore_branch_check=0
 simulate=0
 
-while getopts "s" opt; do
+while getopts "ns" opt; do
   case $opt in
+    n) ignore_branch_check=1;;
     s) simulate=1 ;;
     *) exit 1 ;;
   esac
@@ -35,21 +37,23 @@ fi
 # CHECK BRANCH
 
 current_branch="$(git branch --show-current)"
-if [ "$current_branch" != master ]; then
-  echo "You are currently on the branch: $current_branch"
-  #
-  # NOTE:
-  #
-  # Usually you'd want to deploy from the master branch. On rare
-  # occassions you'd deploy from another branch. So deploying
-  # from a different branch could be a mistake and that's why we
-  # verify if you want to continue with the deploy.
-  #
-  read -r -n 1 -t 30 -p "Are you sure want to continue? (y/N) "
-  case $REPLY in
-    y | Y ) echo ;;
-    * ) exit 1 ;;
-  esac
+if ! ((ignore_branch_check)); then
+  if [ "$current_branch" != master ]; then
+    echo "You are currently on the branch: $current_branch"
+    #
+    # NOTE:
+    #
+    # Usually you'd want to deploy from the master branch. On rare
+    # occassions you'd deploy from another branch. So deploying
+    # from a different branch could be a mistake and that's why we
+    # verify if you want to continue with the deploy.
+    #
+    read -r -n 1 -t 30 -p "Are you sure want to continue? (y/N) "
+    case $REPLY in
+      y | Y ) echo ;;
+      * ) exit 1 ;;
+    esac
+  fi
 fi
 
 # PREPARE DEPLOY DIRECTORY
