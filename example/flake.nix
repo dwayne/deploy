@@ -10,10 +10,16 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        example = pkgs.runCommand "example" {} ''
-          mkdir "$out"
-          cp ${./index.html} "$out/index.html"
-        '';
+        buildExample = { noJekyll ? false }:
+          pkgs.runCommand "example" {} ''
+            mkdir "$out"
+            cp ${./index.html} "$out/index.html"
+            ${pkgs.lib.optionalString noJekyll ''
+              touch "$out/.nojekyll"
+            ''}
+          '';
+
+        example = buildExample {};
 
         serveExample = pkgs.writeShellScript "serve-example" ''
           ${pkgs.caddy}/bin/caddy file-server --browse \
@@ -22,7 +28,7 @@
         '';
 
         deployExample = pkgs.writeShellScript "deploy-example" ''
-          ${deploy.packages.${system}.default}/bin/deploy "$@" ${example} gh-pages
+          ${deploy.packages.${system}.default}/bin/deploy "$@" ${buildExample { noJekyll = true; }} gh-pages
         '';
 
         mkApp = { drv, description }: {
