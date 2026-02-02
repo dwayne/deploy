@@ -50,6 +50,10 @@
             description = "Deploy the example website";
           };
         };
+
+        checks = {
+          inherit example serveExample deployExample;
+        };
       }
     );
 }
