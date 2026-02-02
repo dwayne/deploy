@@ -27,4 +27,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - run: cd example && nix run .#deploy -- -n
+      - run: cd example && nix run .#deploy
