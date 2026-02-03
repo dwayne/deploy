@@ -1,6 +1,9 @@
 #
 # Usage: deploy [-ns] root branch_name
 #
+#   -n = Ignore branch check
+#   -s = Simulate the process
+#
 
 
 # OPTIONS
