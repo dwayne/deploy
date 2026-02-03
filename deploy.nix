@@ -1,13 +1,6 @@
-{
-  git,
-  rsync,
-  writeShellApplication
-}:
+{ git, rsync, writeShellApplication }:
 writeShellApplication {
   name = "deploy";
-  runtimeInputs = [
-    git
-    rsync
-  ];
+  runtimeInputs = [ git rsync ];
   text = builtins.readFile ./deploy.sh;
 }
