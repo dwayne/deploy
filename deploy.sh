@@ -67,8 +67,23 @@ echo "Prepared the deploy directory: $out"
 # PREPARE WORKTREE
 
 if ! ((simulate)); then
-  git worktree add "$out" "$branch_name"
-  git -C "$out" pull
+  # Refresh remote-tracking branches and remove stale ones
+  git fetch origin --prune
+
+  if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+    # Local branch exists: check it out and bring it up to date
+    git worktree add "$out" "$branch_name"
+    # Update the worktree only if it can fast-forward; never create a merge commit
+    git -C "$out" pull --ff-only
+
+  elif git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+    # Only the remote branch exists: create a local tracking branch from it
+    git worktree add --track -b "$branch_name" "$out" "origin/$branch_name"
+
+  else
+    # First deploy: create a new orphan branch with no existing history
+    git worktree add --orphan -b "$branch_name" "$out"
+  fi
 fi
 
 # DEPLOY
