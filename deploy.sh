@@ -64,6 +64,15 @@ fi
 out="$(mktemp -d -t deploy-XXXXX)"
 echo "Prepared the deploy directory: $out"
 
+cleanup () {
+  git worktree remove --force "$out" 2>/dev/null || true
+  rm -rf "$out"
+}
+
+if ! ((simulate)); then
+  trap cleanup EXIT
+fi
+
 # PREPARE WORKTREE
 
 if ! ((simulate)); then
@@ -116,13 +125,10 @@ else
   fi
 fi
 
-# CLEAN UP
+# THE END
 
 if ((simulate)); then
   echo "Please run \"rm -rf $out\" when you're done"
 else
-  git worktree remove --force "$out"
-  rm -rf "$out"
-
   echo "Success!"
 fi
