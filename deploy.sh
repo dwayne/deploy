@@ -80,15 +80,16 @@ if ! ((simulate)); then
   git fetch origin --prune
 
   if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-    # Local branch exists: check it out and bring it up to date
+    # Local branch exists: check it out
     git worktree add "$out" "$branch_name"
-    # Update the worktree only if it can fast-forward; never create a merge commit
-    git -C "$out" pull --ff-only
 
+    if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+      # Fast-forward the local branch to the branch we just fetched from origin
+      git -C "$out" merge --ff-only "origin/$branch_name"
+    fi
   elif git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
     # Only the remote branch exists: create a local tracking branch from it
     git worktree add --track -b "$branch_name" "$out" "origin/$branch_name"
-
   else
     # First deploy: create a new orphan branch with no existing history
     git worktree add --orphan -b "$branch_name" "$out"
