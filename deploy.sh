@@ -40,6 +40,12 @@ fi
 # CHECK BRANCH
 
 current_branch="$(git branch --show-current)"
+
+if [ -z "$current_branch" ]; then
+  echo "Cannot deploy from a detached HEAD" >&2
+  exit 1
+fi
+
 if ! ((ignore_branch_check)); then
   if [ "$current_branch" != master ]; then
     echo "You are currently on the branch: $current_branch"
