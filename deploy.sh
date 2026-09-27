@@ -126,7 +126,7 @@ else
     echo "No changes detected"
   else
     git -C "$out" commit -m "$message"
-    git -C "$out" push -u origin HEAD
+    git -C "$out" push -u origin "HEAD:$branch_name"
   fi
 fi
 
