@@ -104,7 +104,7 @@ fi
 
 # DEPLOY
 
-hash="$(git log -n 1 --format='%h' "$current_branch")"
+hash="$(git rev-parse --short HEAD)"
 message="Site updated to commit $hash from the $current_branch branch"
 
 rsync -rtv --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --progress --delete --exclude=".git" "$root/" "$out"
