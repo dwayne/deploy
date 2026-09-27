@@ -107,12 +107,11 @@ fi
 hash="$(git log -n 1 --format='%h' "$current_branch")"
 message="Site updated to commit $hash from the $current_branch branch"
 
-rsync -rtvz --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --progress --delete --exclude=".git" "$root/" "$out"
+rsync -rtv --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --progress --delete --exclude=".git" "$root/" "$out"
 #
 # --recursive, -r   = recurse into directories
 # --times, -t       = preserve modification times
 # --verbose, -v     = increase verbosity
-# --compress, -z    = compress file data during the transfer
 # --chmod           = set permissions of directories and files
 # --progress        = show progress during transfer
 # --delete          = delete extraneous files from dest dirs
