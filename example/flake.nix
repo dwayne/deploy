@@ -2,18 +2,14 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-
-    deploy = {
-      url = ../.;
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-    };
+    flake-deploy.url = "../.";
   };
 
-  outputs = { self, nixpkgs, flake-utils, deploy }:
+  outputs = { self, nixpkgs, flake-utils, flake-deploy }:
     flake-utils.lib.eachDefaultSystem(system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        deploy = flake-deploy.lib.mkDeploy pkgs;
 
         buildExample = { noJekyll ? false }:
           pkgs.runCommand "example" {} ''
@@ -24,46 +20,67 @@
             ''}
           '';
 
-        example = buildExample {};
-
-        serveExample = pkgs.writeShellScript "serve-example" ''
-          ${pkgs.caddy}/bin/caddy file-server --browse \
-            --listen :8000 \
-            --root ${example}
-        '';
-
-        deployExample = pkgs.writeShellScript "deploy-example" ''
-          ${deploy.packages.${system}.default}/bin/deploy "$@" ${buildExample { noJekyll = true; }} gh-pages
-        '';
-
-        mkApp = { drv, description }: {
-          type = "app";
-          program = "${drv}";
-          meta.description = description;
+        serveExample = { src, port ? 8000 }: pkgs.writeShellApplication {
+          name = "serve-example";
+          runtimeInputs = [ pkgs.caddy ];
+          text = ''
+            exec caddy file-server --browse --listen :${builtins.toString port} --root ${src}
+          '';
         };
+
+        deployExample = { src, branch ? "gh-pages" }: pkgs.writeShellApplication {
+          name = "deploy-example";
+          runtimeInputs = [ deploy ];
+          text = ''
+            exec deploy "$@" "${src}" ${branch}
+          '';
+        };
+
+        exampleDev = buildExample {};
+        exampleProd = buildExample { noJekyll = true; };
+
+        serveDev = serveExample { src = exampleDev; };
+        serveProd = serveExample { src = exampleProd; port = 8001; };
+
+        deployProd = deployExample { src = exampleProd; };
       in
       {
         packages = {
-          inherit example;
-          default = example;
+          inherit
+            exampleDev exampleProd
+            serveDev serveProd
+            deployProd;
+
+          default = exampleDev;
         };
 
         apps = {
-          default = self.apps.${system}.example;
+          default = self.apps.${system}.serveDev;
 
-          example = mkApp {
-            drv = serveExample;
-            description = "The example website";
+          serveDev = {
+            type = "app";
+            program = pkgs.lib.getExe serveDev;
+            meta.description = "Serve the development version of the example website";
           };
 
-          deploy = mkApp {
-            drv = deployExample;
-            description = "Deploy the example website";
+          serveProd = {
+            type = "app";
+            program = pkgs.lib.getExe serveProd;
+            meta.description = "Serve the production version of the example website";
+          };
+
+          deployProd = {
+            type = "app";
+            program = pkgs.lib.getExe deployProd;
+            meta.description = "Deploy the production version of the example website";
           };
         };
 
         checks = {
-          inherit example serveExample deployExample;
+          inherit
+            exampleDev exampleProd
+            serveDev serveProd
+            deployProd;
         };
       }
     );

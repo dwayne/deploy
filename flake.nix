@@ -1,25 +1,38 @@
 {
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+  description = "A Bash script for deploying static websites";
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem(system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-        deploy = pkgs.callPackage ./deploy.nix {};
-      in
-      {
-        packages = {
+  outputs = { self, nixpkgs }:
+    let
+      lib = nixpkgs.lib;
+
+      supportedSystems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      forAllSystems = f:
+        lib.genAttrs supportedSystems (system:
+          let
+            pkgs = nixpkgs.legacyPackages.${system};
+          in
+          f system pkgs
+        );
+    in
+    {
+      packages = forAllSystems (_: pkgs:
+        let
+          deploy = self.lib.mkDeploy pkgs;
+        in
+        {
           inherit deploy;
           default = deploy;
-        };
+        }
+      );
 
-        checks = {
-          inherit deploy;
-        };
-      }
-    );
+      checks = forAllSystems (system: _:
+        {
+          deploy = self.packages.${system}.deploy;
+        }
+      );
+
+      lib.mkDeploy = pkgs: pkgs.callPackage ./deploy.nix {};
+    };
 }
