@@ -5,18 +5,20 @@ on:
     branches:
       - master
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
+  check:
+    uses: ./.github/workflows/check.yml
 
   deploy:
+    needs: check
+
     permissions:
       contents: write
-    needs: [ci]
+
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
