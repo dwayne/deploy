@@ -1,4 +1,4 @@
-name: Check
+name: CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_call:
 
 jobs:
-  check:
+  flake-check:
     strategy:
       fail-fast: false
       matrix:
@@ -20,7 +20,7 @@ jobs:
           - runner: macos-latest
             system: aarch64-darwin
 
-    name: check (${{ matrix.system }})
+    name: flake-check (${{ matrix.system }})
     runs-on: ${{ matrix.runner }}
 
     steps:
@@ -34,5 +34,5 @@ jobs:
           echo "Nix system: $actual"
           test "$actual" = "${{ matrix.system }}"
 
-      - run: nix-build
+      - run: nix flake check -L
       - run: nix flake check ./example -L

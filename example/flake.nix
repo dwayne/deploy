@@ -2,10 +2,16 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-utils-src = { url = "github:dwayne/nix-utils"; flake = false; };
-    deploy-src = { url = "../."; flake = false; };
+    flake-deploy = {
+      url = "../.";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nix-utils-src.follows = "nix-utils-src";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, nix-utils-src, deploy-src }:
+  outputs = { self, nixpkgs, nix-utils-src, flake-deploy }:
     let
       lib = nixpkgs.lib;
       nixUtils = import nix-utils-src lib;
@@ -31,10 +37,9 @@
           '';
         };
 
-        deploy = import deploy-src { inherit pkgs; };
         deployExample = { src, branch ? "gh-pages" }: pkgs.writeShellApplication {
           name = "deploy-example";
-          runtimeInputs = [ deploy ];
+          runtimeInputs = [ flake-deploy.packages.${system}.deploy ];
           text = ''
             exec deploy "$@" "${src}" ${branch}
           '';
