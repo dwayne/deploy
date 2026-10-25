@@ -47,17 +47,17 @@ if [ -z "$current_branch" ]; then
 fi
 
 if ! ((ignore_branch_check)); then
-  if [ "$current_branch" != master ]; then
+  if [ "$current_branch" != master ] && [ "$current_branch" != main ]; then
     echo "You are currently on the branch: $current_branch"
     #
     # NOTE:
     #
-    # Usually you'd want to deploy from the master branch. On rare
-    # occassions you'd deploy from another branch. So deploying
+    # Usually you'd want to deploy from the master or main branch. On
+    # rare occasions you'd deploy from another branch. So deploying
     # from a different branch could be a mistake and that's why we
     # verify if you want to continue with the deploy.
     #
-    read -r -n 1 -t 30 -p "Are you sure want to continue? (y/N) "
+    read -r -n 1 -t 30 -p "Are you sure you want to continue? (y/N) "
     case $REPLY in
       y | Y ) echo ;;
       * ) exit 1 ;;
