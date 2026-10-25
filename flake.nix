@@ -38,5 +38,9 @@
 
         checks = { inherit deploy; };
       }
-    );
+    ) // {
+      overlays.default = final: prev: {
+        deploy = final.callPackage ./deploy.nix {};
+      };
+    };
 }
